@@ -16,12 +16,12 @@ class Task < ApplicationRecord
     state :released
     state :archived
 
-    event :develop do
+    event :to_development do
       transition :new_task => :in_development
       transition :in_qa => :in_development
       transition :in_code_review => :in_development
     end
-    event :arhive do
+    event :archive do
       transition :new_task => :archived
       transition :released => :archived
     end
