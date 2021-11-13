@@ -2,18 +2,18 @@ class Api::V1::TasksController < Api::V1::ApplicationController
   respond_to :json
 
   def index
-    tasks = Task.all
-                .ransack(ransack_params)
-                .result
-                .page(page)
-                .per(per_page)
-  
+    tasks = Task.all.
+      ransack(ransack_params).
+      result.
+      page(page).
+      per(per_page)
+
     respond_with(tasks, each_serializer: TaskSerializer, root: 'items', meta: build_meta(tasks))
   end
 
   def show
     task = Task.find(params[:id])
- 
+
     respond_with(task, serializer: TaskSerializer)
   end
 
@@ -27,19 +27,19 @@ class Api::V1::TasksController < Api::V1::ApplicationController
   def update
     task = Task.find(params[:id])
     task.update(task_params)
-  
+
     respond_with(task, serializer: TaskSerializer)
   end
 
   def destroy
     task = Task.find(params[:id])
     task.destroy
-  
+
     respond_with(task)
   end
-  
+
   private
-  
+
   def task_params
     params.require(:task).permit(:name, :description, :expired_at, :author_id, :assignee_id, :state_event)
   end
