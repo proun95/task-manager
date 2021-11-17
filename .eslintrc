@@ -45,5 +45,5 @@
     "no-debugger": 1,
     "react/destructuring-assignment": 0,
     "react/static-property-placement": 0
-    }
   }
+}
