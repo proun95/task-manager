@@ -109,7 +109,7 @@ const TaskBoard = () => {
 
   const handleClose = () => {
     setMode(MODES.NONE);
-    // changeOpenedTask(null);
+    setOpenedTaskId(null);
   };
 
   const handleTaskCreate = (params) => {
