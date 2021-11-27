@@ -48,6 +48,7 @@ const Form = ({ errors, onChange, task }) => {
         label="Assignee"
         value={TaskPresenter.assignee(task)}
         onChange={handleChangeSelect('assignee')}
+        isClearable
         error={has('assignee', errors)}
         helperText={errors.assignee}
       />
