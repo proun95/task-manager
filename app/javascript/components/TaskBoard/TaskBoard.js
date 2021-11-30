@@ -47,7 +47,7 @@ const TaskBoard = () => {
 
   const loadColumn = (state, page, perPage) =>
     TasksRepository.index({
-      q: { stateEq: state },
+      q: { stateEq: state, sorts: 'created_at desc' },
       page,
       perPage,
     });
