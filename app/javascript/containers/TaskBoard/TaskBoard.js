@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import KanbanBoard from '@asseinfo/react-kanban';
-import { propOr } from 'ramda';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 
@@ -13,79 +12,26 @@ import EditPopup from 'components/EditPopup';
 import '@asseinfo/react-kanban/dist/styles.css';
 import useStyles from './useStyles';
 import TaskPresenter from 'presenters/TaskPresenter';
-
-const STATES = [
-  { key: 'new_task', value: 'New' },
-  { key: 'in_development', value: 'In Dev' },
-  { key: 'in_qa', value: 'In QA' },
-  { key: 'in_code_review', value: 'in CR' },
-  { key: 'ready_for_release', value: 'Ready for release' },
-  { key: 'released', value: 'Released' },
-  { key: 'archived', value: 'Archived' },
-];
-
-const MODES = {
-  ADD: 'add',
-  NONE: 'none',
-  EDIT: 'edit',
-};
-
-const initialBoard = {
-  columns: STATES.map((column) => ({
-    id: column.key,
-    title: column.value,
-    cards: [],
-    meta: {},
-  })),
-};
+import useTasks from 'hooks/store/useTasks';
+import { MODES } from 'presenters/TaskPresenter';
 
 const TaskBoard = () => {
-  const styles = useStyles();
-  const [board, setBoard] = useState(initialBoard);
-  const [boardCards, setBoardCards] = useState([]);
+  const { board, loadBoard, loadColumn, loadColumnMore } = useTasks();
   const [mode, setMode] = useState(MODES.NONE);
   const [openedTaskId, setOpenedTaskId] = useState(null);
+  const styles = useStyles();
 
-  const loadColumn = (state, page, perPage) =>
-    TasksRepository.index({
-      q: { stateEq: state, sorts: 'created_at desc' },
-      page,
-      perPage,
-    });
-
-  const loadColumnInitial = (state, page = 1, perPage = 10) => {
-    loadColumn(state, page, perPage).then(({ data }) => {
-      setBoardCards((prevState) => ({
-        ...prevState,
-        [state]: { cards: data.items, meta: data.meta },
-      }));
-    });
+  const handleClose = () => {
+    setMode(MODES.NONE);
+    setOpenedTaskId(null);
   };
 
-  const loadColumnMore = (state, page = 1, perPage = 10) => {
-    loadColumn(state, page, perPage).then(({ data }) => {
-      setBoardCards((prevState) => ({
-        ...prevState,
-        [state]: { cards: prevState[state].cards.concat(data.items), meta: data.meta },
-      }));
+  const handleTaskCreate = (params) => {
+    const attributes = TaskForm.attributesToSubmit(params);
+    return TasksRepository.create(attributes).then(({ data: { task } }) => {
+      loadColumn(TaskPresenter.state(task));
+      handleClose();
     });
-  };
-
-  const generateBoard = () => {
-    const generatedBoard = {
-      columns: STATES.map(({ key, value }) => ({
-        id: key,
-        title: value,
-        cards: propOr({}, 'cards', boardCards[key]),
-        meta: propOr({}, 'meta', boardCards[key]),
-      })),
-    };
-
-    setBoard(generatedBoard);
-  };
-
-  const loadBoard = () => {
-    STATES.map(({ key }) => loadColumnInitial(key));
   };
 
   const handleCardDragEnd = (task, source, destination) => {
@@ -96,8 +42,8 @@ const TaskBoard = () => {
 
     return TasksRepository.update(TaskPresenter.id(task), { task: { stateEvent: transition.event } })
       .then(() => {
-        loadColumnInitial(destination.toColumnId);
-        loadColumnInitial(source.fromColumnId);
+        loadColumn(destination.toColumnId);
+        loadColumn(source.fromColumnId);
       })
       .catch((error) => {
         alert(`Move failed! ${error.message}`);
@@ -106,19 +52,6 @@ const TaskBoard = () => {
 
   const handleOpenAddPopup = () => {
     setMode(MODES.ADD);
-  };
-
-  const handleClose = () => {
-    setMode(MODES.NONE);
-    setOpenedTaskId(null);
-  };
-
-  const handleTaskCreate = (params) => {
-    const attributes = TaskForm.attributesToSubmit(params);
-    return TasksRepository.create(attributes).then(({ data: { task } }) => {
-      loadColumnInitial(TaskPresenter.state(task));
-      handleClose();
-    });
   };
 
   const handleOpenEditPopup = (task) => {
@@ -132,19 +65,22 @@ const TaskBoard = () => {
     const attributes = TaskForm.attributesToSubmit(task);
 
     return TasksRepository.update(TaskPresenter.id(task), attributes).then(() => {
-      loadColumnInitial(TaskPresenter.state(task));
+      loadColumn(TaskPresenter.state(task));
       handleClose();
     });
   };
 
   const handleTaskDestroy = (task) =>
     TasksRepository.destroy(TaskPresenter.id(task)).then(() => {
-      loadColumnInitial(TaskPresenter.state(task));
+      loadColumn(TaskPresenter.state(task));
       handleClose();
     });
 
-  useEffect(() => loadBoard(), []);
-  useEffect(() => generateBoard(), [boardCards]);
+  useEffect(() => {
+    loadBoard();
+  }, []);
+
+  // useEffect(() => generateBoard(), board);
 
   return (
     <>

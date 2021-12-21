@@ -1,4 +1,4 @@
-import { propEq } from 'ramda';
+import { propEq /* , propOr */ } from 'ramda';
 import { createSlice } from '@reduxjs/toolkit';
 import { useDispatch } from 'react-redux';
 import { changeColumn } from '@asseinfo/react-kanban';
@@ -32,10 +32,22 @@ const tasksSlice = createSlice({
 
       return state;
     },
+
+    loadAdditionalColumnSuccess(state, { payload }) {
+      const { items, meta, columnId } = payload;
+      const column = state.board.columns.find(propEq('id', columnId));
+
+      state.board = changeColumn(state.board, column, {
+        cards: column.cards.concat(items),
+        meta,
+      });
+
+      return state;
+    },
   },
 });
 
-const { loadColumnSuccess } = tasksSlice.actions;
+const { loadColumnSuccess, loadAdditionalColumnSuccess } = tasksSlice.actions;
 
 export default tasksSlice.reducer;
 
@@ -44,7 +56,7 @@ export const useTasksActions = () => {
 
   const loadColumn = (state, page = 1, perPage = 10) => {
     TasksRepository.index({
-      q: { stateEq: state },
+      q: { stateEq: state, sorts: 'created_at desc' },
       page,
       perPage,
     }).then(({ data }) => {
@@ -52,9 +64,24 @@ export const useTasksActions = () => {
     });
   };
 
-  const loadBoard = () => STATES.map(({ key }) => loadColumn(key));
+  const loadAdditionalColumn = (state, page = 1, perPage = 10) => {
+    TasksRepository.index({
+      q: { stateEq: state, sorts: 'created_at desc' },
+      page,
+      perPage,
+    }).then(({ data }) => {
+      dispatch(loadAdditionalColumnSuccess({ ...data, columnId: state }));
+    });
+  };
+
+  const loadColumnMore = (state, page = 1, perPage = 10) => {
+    loadAdditionalColumn(state, page, perPage).then(({ data }) => {
+      dispatch(loadAdditionalColumnSuccess({ ...data, columnId: state }));
+    });
+  };
 
   return {
-    loadBoard,
+    loadColumn,
+    loadColumnMore,
   };
 };

@@ -12,6 +12,12 @@ export const STATES = [
   { key: 'archived', value: 'Archived' },
 ];
 
+export const MODES = {
+  ADD: 'add',
+  NONE: 'none',
+  EDIT: 'edit',
+};
+
 export default new PropTypesPresenter({
   id: PropTypes.number,
   name: PropTypes.string,
