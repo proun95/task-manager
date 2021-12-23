@@ -16,7 +16,7 @@ import useTasks from 'hooks/store/useTasks';
 import { MODES } from 'presenters/TaskPresenter';
 
 const TaskBoard = () => {
-  const { board, loadBoard, loadColumn, loadColumnMore } = useTasks();
+  const { board, loadBoard, loadColumn, loadAdditionalColumn } = useTasks();
   const [mode, setMode] = useState(MODES.NONE);
   const [openedTaskId, setOpenedTaskId] = useState(null);
   const styles = useStyles();
@@ -85,7 +85,7 @@ const TaskBoard = () => {
   return (
     <>
       <KanbanBoard
-        renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadColumnMore} />}
+        renderColumnHeader={(column) => <ColumnHeader column={column} onLoadMore={loadAdditionalColumn} />}
         renderCard={(card) => <Task onClick={handleOpenEditPopup} task={card} />}
         onCardDragEnd={handleCardDragEnd}
       >

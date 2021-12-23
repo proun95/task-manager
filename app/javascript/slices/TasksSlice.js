@@ -74,14 +74,8 @@ export const useTasksActions = () => {
     });
   };
 
-  const loadColumnMore = (state, page = 1, perPage = 10) => {
-    loadAdditionalColumn(state, page, perPage).then(({ data }) => {
-      dispatch(loadAdditionalColumnSuccess({ ...data, columnId: state }));
-    });
-  };
-
   return {
     loadColumn,
-    loadColumnMore,
+    loadAdditionalColumn,
   };
 };
